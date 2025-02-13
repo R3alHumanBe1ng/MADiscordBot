@@ -1,6 +1,9 @@
 import re
+import os
 import psycopg2
 from typing import List, Literal
+
+token = os.environ.get("BOTTOKEN")
 
 import discord
 from discord import app_commands
@@ -298,4 +301,4 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         for row in ts))
 
 
-bot.run('MTMzMTM2MTYxNjA4Nzg3NTYwNA.GcU68R.EcstzgVVyMJjAcjDRSCHh0mbJasdJhAzQlgyJ4')
+bot.run(token)

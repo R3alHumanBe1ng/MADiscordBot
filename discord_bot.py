@@ -293,7 +293,6 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         ts = cur.fetchall()
         if not ts:
             await interaction.response.send_message("No result", ephemeral=True)
-        ts.sort(key=time_sorting_key)
         await interaction.response.send_message("## " + bot.get_user(int(user)).mention + ", " + track + ", " + car + "\n\n" +
         "\n\n".join(f"*{row[4]}*"
         for row in ts))

@@ -11,9 +11,9 @@ intents.message_content = True
 intents.members = True
 
 conn = psycopg2.connect(database="postgres",
-                        host="crazily-accustomed-sow.data-1.use1.tembo.io",
+                        host="localhost",
                         user="postgres",
-                        password="iWuvac3b8mGzaXq0",
+                        password="pass",
                         port="5432")
 cur = conn.cursor()
 
@@ -239,7 +239,7 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         WHERE uid = %s;
         """, (user,))
         ts = cur.fetchall()
-        ts.sort(key=lambda a: int(a[2])*100 + int(a[3]))
+        ts.sort(key=lambda a: ord(a[2][0])*100 + ord(a[3][0]))
         await interaction.response.send_message("# " + bot.get_user(int(user)).mention +
         "\n\n".join(f"\n**{row[2]}**\n{row[3]}\n*{row[4]}*"
         for row in ts))

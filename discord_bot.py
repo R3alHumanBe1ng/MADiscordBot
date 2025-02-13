@@ -239,9 +239,11 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         WHERE uid = %s;
         """, (user,))
         ts = cur.fetchall()
+        if not ts:
+            await interaction.response.send_message("No result", ephemeral=True)
         ts.sort(key=lambda a: ord(a[2][0])*100 + ord(a[3][0]))
-        await interaction.response.send_message("# " + bot.get_user(int(user)).mention +
-        "\n\n".join(f"\n**{row[2]}**\n{row[3]}\n*{row[4]}*"
+        await interaction.response.send_message("## " + bot.get_user(int(user)).mention + "\n\n" +
+        "\n\n".join(f"**{row[2]}**\n{row[3]}\n*{row[4]}*"
         for row in ts))
     elif car is None:
         cur.execute("""
@@ -250,9 +252,11 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         WHERE uid = %s AND track = %s;
         """, (user, track))
         ts = cur.fetchall()
+        if not ts:
+            await interaction.response.send_message("No result", ephemeral=True)
         ts.sort(key=lambda a: a[3])
-        await interaction.response.send_message("# " + bot.get_user(int(user)).mention + ", " + track +
-        "\n\n".join(f"\n**{row[3]}**\n*{row[4]}*"
+        await interaction.response.send_message("## " + bot.get_user(int(user)).mention + ", " + track + "\n\n" +
+        "\n\n".join(f"**{row[3]}**\n*{row[4]}*"
         for row in ts))
     elif track is None:
         cur.execute("""
@@ -261,9 +265,11 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         WHERE uid = %s AND car = %s;
         """, (user, car))
         ts = cur.fetchall()
+        if not ts:
+            await interaction.response.send_message("No result", ephemeral=True)
         ts.sort(key=lambda a: a[2])
-        await interaction.response.send_message("# " + bot.get_user(int(user)).mention + ", " + car +
-        "\n\n".join(f"\n**{row[2]}**\n*{row[4]}*"
+        await interaction.response.send_message("## " + bot.get_user(int(user)).mention + ", " + car + "\n\n" +
+        "\n\n".join(f"**{row[2]}**\n*{row[4]}*"
         for row in ts))
     elif user is None:
         cur.execute("""
@@ -272,9 +278,24 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         WHERE track = %s AND car = %s;
         """, (track, car))
         ts = cur.fetchall()
+        if not ts:
+            await interaction.response.send_message("No result", ephemeral=True)
         ts.sort(key=time_sorting_key)
-        await interaction.response.send_message("# " + track + ", " + car +
-        "\n\n".join(f"\n**{bot.get_user(int(row[1])).mention}**\n*{row[4]}*"
+        await interaction.response.send_message("## " + track + ", " + car + "\n\n" +
+        "\n\n".join(f"**{bot.get_user(int(row[1])).mention}**\n*{row[4]}*"
+        for row in ts))
+    else:
+        cur.execute("""
+        SELECT *
+        FROM table1
+        WHERE uid = %s AND track = %s AND car = %s;
+        """, (user, track, car))
+        ts = cur.fetchall()
+        if not ts:
+            await interaction.response.send_message("No result", ephemeral=True)
+        ts.sort(key=time_sorting_key)
+        await interaction.response.send_message("## " + bot.get_user(int(user)).mention + ", " + track + ", " + car + "\n\n" +
+        "\n\n".join(f"*{row[4]}*"
         for row in ts))
 
 

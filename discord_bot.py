@@ -8,6 +8,7 @@ from discord.ext import commands
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 
 conn = psycopg2.connect(database="postgres",
                         host="crazily-accustomed-sow.data-1.use1.tembo.io",
@@ -134,6 +135,9 @@ def element_exists(uid, track, car):
         )''', (uid, track, car))
     return cur.fetchone()[0]
 
+def time_sorting_key(row):
+    return int(row[4][:1])*60000 + int(row[4][2:4])*1000 + int(row[4][5:])
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
@@ -148,8 +152,8 @@ async def user_autocomplete(
         current: str,
 ) -> List[app_commands.Choice[str]]:
     return [
-        app_commands.Choice(name=user.display_name, value=user.id)
-        for user in bot.users if current.lower() in user.display_name.lower() or current.lower() in user.global_name.lower() or current.lower() in user.name.lower()
+        app_commands.Choice(name=user.display_name, value=str(user.id))
+        for user in interaction.guild.members if current.lower() in user.display_name.lower() or current.lower() in user.global_name.lower() or current.lower() in user.name.lower()
     ]
 
 async def car_autocomplete(
@@ -234,5 +238,44 @@ async def showTimes(interaction: discord.Interaction, user: str = None, track: s
         FROM table1
         WHERE uid = %s;
         """, (user,))
+        ts = cur.fetchall()
+        ts.sort(key=lambda a: int(a[2])*100 + int(a[3]))
+        await interaction.response.send_message("# " + bot.get_user(int(user)).mention +
+        "\n\n".join(f"\n**{row[2]}**\n{row[3]}\n*{row[4]}*"
+        for row in ts))
+    elif car is None:
+        cur.execute("""
+        SELECT *
+        FROM table1
+        WHERE uid = %s AND track = %s;
+        """, (user, track))
+        ts = cur.fetchall()
+        ts.sort(key=lambda a: a[3])
+        await interaction.response.send_message("# " + bot.get_user(int(user)).mention + ", " + track +
+        "\n\n".join(f"\n**{row[3]}**\n*{row[4]}*"
+        for row in ts))
+    elif track is None:
+        cur.execute("""
+        SELECT *
+        FROM table1
+        WHERE uid = %s AND car = %s;
+        """, (user, car))
+        ts = cur.fetchall()
+        ts.sort(key=lambda a: a[2])
+        await interaction.response.send_message("# " + bot.get_user(int(user)).mention + ", " + car +
+        "\n\n".join(f"\n**{row[2]}**\n*{row[4]}*"
+        for row in ts))
+    elif user is None:
+        cur.execute("""
+        SELECT *
+        FROM table1
+        WHERE track = %s AND car = %s;
+        """, (track, car))
+        ts = cur.fetchall()
+        ts.sort(key=time_sorting_key)
+        await interaction.response.send_message("# " + track + ", " + car +
+        "\n\n".join(f"\n**{bot.get_user(int(row[1])).mention}**\n*{row[4]}*"
+        for row in ts))
+
 
 bot.run('MTMzMTM2MTYxNjA4Nzg3NTYwNA.GcU68R.EcstzgVVyMJjAcjDRSCHh0mbJasdJhAzQlgyJ4')

@@ -156,7 +156,7 @@ async def user_autocomplete(
 ) -> List[app_commands.Choice[str]]:
     return [
         app_commands.Choice(name=user.display_name, value=str(user.id))
-        for user in interaction.guild.members if current.lower() in user.display_name.lower() or current.lower() in user.global_name.lower() or current.lower() in user.name.lower()
+        for user in interaction.guild.members if (current.lower() in user.display_name.lower() or current.lower() in user.name.lower())
     ]
 
 async def car_autocomplete(
@@ -215,7 +215,7 @@ async def setTime(interaction: discord.Interaction, track: str, car: str, time: 
                         """,
                         (str(interaction.user.id), track, car, time))
         conn.commit()
-        await interaction.response.send_message(f"{interaction.user.mention} set time {time} for {track} with {car}")
+        await interaction.response.send_message(f"Set time {time} for {track} with {car}", ephemeral=True)
 
 @bot.tree.command(name="show_times", description="Display times based on inputs")
 @app_commands.describe(user="select a user (optional)")
